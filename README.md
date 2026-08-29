@@ -4,10 +4,9 @@
 
 [![Python](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![CUDA](https://img.shields.io/badge/CUDA-12.x-76B900?logo=nvidia&logoColor=white)](https://developer.nvidia.com/cuda-toolkit)
-[![Ollama](https://img.shields.io/badge/Local%20LLM-Ollama-FF6B35)](https://ollama.com/)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 
-</div>.
+</div>
 
 ---
 
