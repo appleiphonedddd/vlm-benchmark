@@ -1,8 +1,8 @@
 import ast
-import re
 from typing import Dict, Any, List
 from datasets import load_dataset
 from base.base_dataset import BaseBenchmarkDataset
+from utils.metrics import accuracy
 
 OPTION_KEYS = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"]
 IMAGE_KEYS = [f"image_{i}" for i in range(1, 8)]
@@ -13,6 +13,7 @@ class MMMUProDataset(BaseBenchmarkDataset):
 
     def __init__(self, data_path: str = "MMMU/MMMU_Pro", split: str = "test", config_name: str = "standard (10 options)"):
         self.config_name = config_name
+        self.accuracy = accuracy(OPTION_KEYS)
         super().__init__(data_path, split)
 
     def load_data(self) -> List[Dict[str, Any]]:
@@ -40,22 +41,7 @@ class MMMUProDataset(BaseBenchmarkDataset):
         return samples
 
     def evaluate_sample(self, prediction: str, ground_truth: Any) -> Dict[str, float]:
-        predicted_letter = self._extract_choice(prediction)
-        correct = float(predicted_letter == str(ground_truth).strip().upper())
-        return {"accuracy": correct}
+        return self.accuracy.score(prediction, ground_truth)
 
     def aggregate_metrics(self, results: List[Dict[str, Any]]) -> Dict[str, float]:
-        if not results:
-            return {"accuracy": 0.0}
-        total_accuracy = sum(r["metrics"]["accuracy"] for r in results)
-        return {"accuracy": total_accuracy / len(results)}
-
-    @staticmethod
-    def _extract_choice(prediction: str) -> str:
-        prediction = prediction.strip()
-
-        match = re.search(r"\b([A-J])\b", prediction.upper())
-        if match:
-            return match.group(1)
-
-        return ""
+        return self.accuracy.aggregate(results)
