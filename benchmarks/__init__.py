@@ -1,7 +1,9 @@
 from .MMBench import MMBenchDataset
+from .MMMU import MMMUDataset
 
 DATASET_REGISTRY = {
     "mmbench": MMBenchDataset,
+    "mmmu": MMMUDataset,
 }
 
 def build_dataset(dataset_name: str, **kwargs):
