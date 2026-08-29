@@ -1,6 +1,7 @@
 import os
 import json
 import argparse
+from tqdm import tqdm
 import models
 import benchmarks
 import baselines
@@ -83,6 +84,29 @@ def parse_args():
     return parser.parse_args()
 
 
+def format_sample(result, index):
+    """Render one finished sample as a single console line"""
+    accuracy = result["metrics"].get("accuracy")
+    mark = "-" if accuracy is None else ("✓" if accuracy >= 1.0 else "✗")
+    prediction = " ".join(str(result["prediction"]).split())
+    if len(prediction) > 80:
+        prediction = prediction[:77] + "..."
+    return (f"[{index:>5}] {mark} id={result['id']} "
+            f"gt={result['ground_truth']} pred={prediction!r}")
+
+
+def make_progress_reporter():
+    """Build the per-sample callback passed to run_evaluation"""
+    seen = 0
+
+    def report(result, running):
+        nonlocal seen
+        seen += 1
+        tqdm.write(format_sample(result, seen))
+
+    return report
+
+
 def main():
     args = parse_args()
     os.makedirs(args.output_dir, exist_ok=True)
@@ -98,7 +122,12 @@ def main():
     dataset = load_benchmark(args)
 
     print("Starting evaluation...")
-    evaluation = dataset.run_evaluation(model, limit=args.limit)
+    evaluation = dataset.run_evaluation(model, limit=args.limit,
+                                        on_sample=make_progress_reporter())
+
+    details = evaluation["details"]
+    correct = sum(1 for r in details if r["metrics"].get("accuracy", 0) >= 1.0)
+    print(f"Correct: {correct}/{len(details)}")
     print(f"Evaluation Metrics: {evaluation['summary']}")
 
     # Save results and configuration
