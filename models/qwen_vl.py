@@ -7,7 +7,7 @@ class QwenVLModel(BaseVLM):
     def load_model(self):
         self.model = AutoModelForImageTextToText.from_pretrained(
             self.model_path,
-            torch_dtype=self.kwargs.get("torch_dtype", torch.bfloat16),
+            dtype=self.kwargs.get("dtype", torch.bfloat16),
             device_map=self.kwargs.get("device_map", "auto"),
             **{k: v for k, v in self.kwargs.items() if k not in ["torch_dtype", "device_map"]}
         )
