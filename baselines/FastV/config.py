@@ -1,9 +1,6 @@
 from dataclasses import dataclass
 from typing import Literal
 
-from dataclasses import dataclass
-from typing import Literal
-
 @dataclass
 class FastVConfig:
     

@@ -19,7 +19,7 @@ class AttentionScoreRanker(BaseImportanceRanker):
         keep_ratio: float
     ) -> torch.Tensor:
         
-        avg_attn_received = attn_weights.mean(dim=(1, 2))  # [batch_size, seq_len][cite: 2]
+        avg_attn_received = attn_weights.mean(dim=(1, 2))
         
         vision_scores = avg_attn_received[:, vision_token_indices]
         num_keep = int(vision_token_indices.shape[0] * keep_ratio)
