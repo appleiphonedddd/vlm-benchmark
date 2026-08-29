@@ -1,4 +1,8 @@
-BASELINE_REGISTRY = {}
+from .FastV.fastv_baseline import FastVBaseline
+
+BASELINE_REGISTRY = {
+    "fastv": FastVBaseline,
+}
 
 def build_baseline(baseline_name: str, **kwargs):
     baseline_cls = BASELINE_REGISTRY.get(baseline_name.lower())

@@ -9,7 +9,7 @@ OPTION_KEYS = ["A", "B", "C", "D"]
 class MMBenchDataset(BaseBenchmarkDataset):
     """MMBench multiple-choice VQA benchmark"""
 
-    def __init__(self, data_path: str, split: str = "dev", config_name: str = "en"):
+    def __init__(self, data_path: str = "lmms-lab/MMBench", split: str = "dev", config_name: str = "en"):
         self.config_name = config_name
         self.accuracy = accuracy(OPTION_KEYS)
         super().__init__(data_path, split)

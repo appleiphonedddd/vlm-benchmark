@@ -12,3 +12,7 @@ class FastVBaseline(BaseBaseline):
 
     def predict(self, sample: Dict[str, Any]) -> str:
         return self.model.generate(sample["image"], sample["prompt"], **self.kwargs)
+
+    def generate(self, image, prompt: str, **gen_kwargs) -> str:
+        """Delegate to the patched model so the wrapper is drop-in for BaseVLM."""
+        return self.model.generate(image, prompt, **{**self.kwargs, **gen_kwargs})
