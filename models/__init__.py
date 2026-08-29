@@ -2,7 +2,7 @@ from .llava import LlavaModel
 from .qwen_vl import QwenVLModel
 
 MODEL_REGISTRY = {
-    "llava": LLaVAModel,
+    "llava": LlavaModel,
     "qwen_vl": QwenVLModel,
 }
 
