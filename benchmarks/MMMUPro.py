@@ -54,7 +54,6 @@ class MMMUProDataset(BaseBenchmarkDataset):
     def _extract_choice(prediction: str) -> str:
         prediction = prediction.strip()
 
-        # Prefer a standalone option letter, e.g. "B", "(B)", "B.", "Answer: B"
         match = re.search(r"\b([A-J])\b", prediction.upper())
         if match:
             return match.group(1)

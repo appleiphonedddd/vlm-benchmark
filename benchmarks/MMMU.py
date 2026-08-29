@@ -21,7 +21,6 @@ class MMMUDataset(BaseBenchmarkDataset):
         samples = []
         for item in hf_dataset:
             # MMMU questions may reference several images as <image 1>, <image 2>, ...
-            # but most models only accept a single image, so we use the first one present.
             image = next((item[key] for key in IMAGE_KEYS if item.get(key) is not None), None)
 
             question_type = item.get("question_type")
@@ -72,7 +71,6 @@ class MMMUDataset(BaseBenchmarkDataset):
     def _extract_choice(prediction: str) -> str:
         prediction = prediction.strip()
 
-        # Prefer a standalone option letter, e.g. "B", "(B)", "B.", "Answer: B"
         match = re.search(r"\b([A-J])\b", prediction.upper())
         if match:
             return match.group(1)
