@@ -13,29 +13,33 @@ class BaseBenchmarkDataset(ABC):
 
     @abstractmethod
     def load_data(self) -> List[Dict[str, Any]]:
-        """Load dataset, where each sample must be formatted into a standard dictionary:
+        """
+        Load dataset, where each sample must be formatted into a standard dictionary:
         {
             "id": sample_id,
             "image": Image / image_path,
             "prompt": formatted_prompt,
-            "ground_truth": ground_truth_answer,
+            "ground_truth": ground_truth_answer
         }
         """
         pass
 
     @abstractmethod
     def evaluate_sample(self, prediction: str, ground_truth: Any) -> Dict[str, float]:
-        """Compute metrics for a single sample"""
+        """
+        Compute metrics for a single sample
+        """
         pass
 
     def run_evaluation(self, model: BaseVLM, limit: int = None,
                        on_sample: Callable[[Dict[str, Any], Dict[str, float]], None] = None,
                        **gen_kwargs) -> Dict[str, Any]:
-        """Execute the complete evaluation pipeline.
+        """
+        Execute the complete evaluation pipeline
 
-        on_sample, if given, is called after every sample with that sample's
+        if given is called after every sample with that sample's
         result and the running aggregate, so callers can report progress
-        without this class knowing how results are displayed.
+        without this class knowing how results are displayed
         """
         samples = self.data[:limit] if limit else self.data
         results = []

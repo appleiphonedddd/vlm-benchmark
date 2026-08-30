@@ -7,7 +7,7 @@ class LlavaModel(BaseVLM):
     def load_model(self):
         self.model = AutoModelForImageTextToText.from_pretrained(
             self.model_path,
-            torch_dtype=self.kwargs.get("torch_dtype", torch.float16),
+            dtype=self.kwargs.get("torch_dtype", torch.float16),
             device_map=self.kwargs.get("device_map", "auto")
         )
         self.processor = AutoProcessor.from_pretrained(self.model_path)
