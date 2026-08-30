@@ -4,6 +4,7 @@ import argparse
 import models
 import benchmarks
 import baselines
+from utils import CaseInsensitiveChoice
 from tqdm import tqdm
 
 def load_model(args):
@@ -24,19 +25,6 @@ def load_benchmark(args):
         kwargs["config_name"] = args.config_name
 
     return benchmarks.build_dataset(args.benchmark, **kwargs)
-
-class CaseInsensitiveChoice:
-    """argparse type that matches registry keys regardless of the casing typed"""
-
-    def __init__(self, registry):
-        self.choices = sorted(registry)
-
-    def __call__(self, value):
-        if value.lower() not in self.choices:
-            raise argparse.ArgumentTypeError(
-                f"invalid choice: {value!r} (choose from {', '.join(self.choices)})")
-        return value.lower()
-
 
 def parse_args():
     parser = argparse.ArgumentParser(description="VLM Benchmark Evaluation")
