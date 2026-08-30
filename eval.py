@@ -1,38 +1,20 @@
 import os
 import json
 import argparse
-from tqdm import tqdm
 import models
 import benchmarks
 import baselines
+from tqdm import tqdm
 
 def load_model(args):
-    # Initialize the base model wrapper
-    if args.model == "llava":
-        model = models.llava.LlavaModel(model_path=args.model_path, device=args.device)
-    elif args.model == "qwen_vl":
-        model = models.qwen_vl.QwenVLModel(model_path=args.model_path, device=args.device)
-    else:
-        raise ValueError(f"Unsupported model: {args.model}")
+    model = models.build_model(args.model, model_path=args.model_path, device=args.device)
 
-    # Apply baseline wrappers / patchers (e.g., FastV)
     if args.baseline is not None:
         model = baselines.build_baseline(args.baseline, model=model)
 
     return model
 
 def load_benchmark(args):
-    if args.benchmark == "MMBench":
-        dataset_cls = benchmarks.MMBench.MMBenchDataset
-    elif args.benchmark == "MMMU":
-        dataset_cls = benchmarks.MMMU.MMMUDataset
-    elif args.benchmark == "MMMUPro":
-        dataset_cls = benchmarks.MMMUPro.MMMUProDataset
-    else:
-        raise ValueError(f"Unsupported benchmark: {args.benchmark}")
-
-    # data_path is a HuggingFace dataset ID (or a local dataset directory);
-    # each dataset class carries its own default, so only override when asked.
     kwargs = {}
     if args.data_path:
         kwargs["data_path"] = args.data_path
@@ -41,18 +23,33 @@ def load_benchmark(args):
     if args.config_name:
         kwargs["config_name"] = args.config_name
 
-    return dataset_cls(**kwargs)
+    return benchmarks.build_dataset(args.benchmark, **kwargs)
+
+class CaseInsensitiveChoice:
+    """argparse type that matches registry keys regardless of the casing typed"""
+
+    def __init__(self, registry):
+        self.choices = sorted(registry)
+
+    def __call__(self, value):
+        if value.lower() not in self.choices:
+            raise argparse.ArgumentTypeError(
+                f"invalid choice: {value!r} (choose from {', '.join(self.choices)})")
+        return value.lower()
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description="VLM Benchmark Evaluation")
 
-    parser.add_argument("--model", type=str, required=True,
+    parser.add_argument("--model", type=CaseInsensitiveChoice(models.MODEL_REGISTRY),
+                        required=True, metavar="|".join(sorted(models.MODEL_REGISTRY)),
                         help="Model architecture to evaluate")
 
     parser.add_argument("--model_path", type=str, required=True,
                         help="Path or HuggingFace ID for the model checkpoint")
 
-    parser.add_argument("--benchmark", type=str, required=True,
+    parser.add_argument("--benchmark", type=CaseInsensitiveChoice(benchmarks.DATASET_REGISTRY),
+                        required=True, metavar="|".join(sorted(benchmarks.DATASET_REGISTRY)),
                         help="Benchmark dataset to run")
 
     parser.add_argument("--data_path", type=str, default=None,
@@ -71,7 +68,8 @@ def parse_args():
     parser.add_argument("--limit", type=int, default=None,
                         help="Evaluate only the first N samples")
 
-    parser.add_argument("--baseline", type=str, default=None, choices=["FastV", None],
+    parser.add_argument("--baseline", type=CaseInsensitiveChoice(baselines.BASELINE_REGISTRY),
+                        default=None, metavar="|".join(sorted(baselines.BASELINE_REGISTRY)),
                         help="Baseline or acceleration technique to apply")
 
     parser.add_argument("--output_dir", type=str, default="./results",
