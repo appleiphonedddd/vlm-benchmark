@@ -22,6 +22,6 @@ conda activate vlm
 ## 📐 Run Evaluation
 
 ```bash
- python eval.py --model qwen_vl --model_path Qwen/Qwen3-VL-2B-Instruct --benchmark MMMUPro
+python eval.py --model qwen_vl --model_path Qwen/Qwen3-VL-2B-Instruct --baseline fastv --benchmark MMMUPro
 ```
 
