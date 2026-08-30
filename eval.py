@@ -53,17 +53,12 @@ def parse_args():
     parser.add_argument("--data_dir", type=str, default=None,
                         help="Cache directory for downloaded datasets (sets HF_DATASETS_CACHE)")
 
-    parser.add_argument("--limit", type=int, default=None,
-                        help="Evaluate only the first N samples")
-
     parser.add_argument("--baseline", type=CaseInsensitiveChoice(baselines.BASELINE_REGISTRY),
                         default=None, metavar="|".join(sorted(baselines.BASELINE_REGISTRY)),
                         help="Baseline or acceleration technique to apply")
 
     parser.add_argument("--output_dir", type=str, default="./results",
                         help="Directory to save evaluation results")
-
-    parser.add_argument("--batch_size", type=int, default=1)
 
     parser.add_argument("--device", type=str, default="cuda")
 
@@ -108,8 +103,7 @@ def main():
     dataset = load_benchmark(args)
 
     print("Starting evaluation...")
-    evaluation = dataset.run_evaluation(model, limit=args.limit,
-                                        on_sample=make_progress_reporter())
+    evaluation = dataset.run_evaluation(model, on_sample=make_progress_reporter())
 
     details = evaluation["details"]
     correct = sum(1 for r in details if r["metrics"].get("accuracy", 0) >= 1.0)

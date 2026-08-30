@@ -31,7 +31,7 @@ class BaseBenchmarkDataset(ABC):
         """
         pass
 
-    def run_evaluation(self, model: BaseVLM, limit: int = None,
+    def run_evaluation(self, model: BaseVLM,
                        on_sample: Callable[[Dict[str, Any], Dict[str, float]], None] = None,
                        **gen_kwargs) -> Dict[str, Any]:
         """
@@ -41,10 +41,9 @@ class BaseBenchmarkDataset(ABC):
         result and the running aggregate, so callers can report progress
         without this class knowing how results are displayed
         """
-        samples = self.data[:limit] if limit else self.data
         results = []
 
-        for item in tqdm(samples, desc=f"Evaluating on {self.__class__.__name__}"):
+        for item in tqdm(self.data, desc=f"Evaluating on {self.__class__.__name__}"):
             pred = model.generate(item["image"], item["prompt"], **gen_kwargs)
             metric_score = self.evaluate_sample(pred, item["ground_truth"])
 
