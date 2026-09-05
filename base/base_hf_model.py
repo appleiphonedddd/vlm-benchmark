@@ -27,29 +27,55 @@ class HuggingFaceBaseVLM(BaseVLM):
             **extra_kwargs
         )
         self.processor = AutoProcessor.from_pretrained(self.model_path)
+        tokenizer = getattr(self.processor, "tokenizer", None)
+        if tokenizer is not None:
+            tokenizer.padding_side = "left"
+            if tokenizer.pad_token is None:
+                tokenizer.pad_token = tokenizer.eos_token
+        elif hasattr(self.processor, "padding_side"):
+            self.processor.padding_side = "left"
 
     @abstractmethod
     def build_messages(self, image: Image.Image, prompt: str) -> List[Dict[str, Any]]:
         """Construct chat template messages formatted for the specific VLM."""
         pass
 
-    def process_inputs(self, text: str, image: Image.Image):
+    def process_inputs(self, text: Union[str, List[str]], image: Union[Image.Image, List[Image.Image]]):
         """Preprocess text and image into tensors on the model's device."""
         return self.processor(
             text=text,
             images=image,
+            padding=True,
             return_tensors="pt"
         ).to(self.model.device)
 
-    def generate(self, image: Union[Image.Image, str], prompt: str, **gen_kwargs) -> str:
-        if isinstance(image, str):
-            image = Image.open(image).convert("RGB")
+    def batch_generate(
+        self,
+        images: List[Union[Image.Image, str]],
+        prompts: List[str],
+        **gen_kwargs
+    ) -> List[str]:
+        if not images or not prompts:
+            return []
 
-        messages = self.build_messages(image, prompt)
-        text = self.processor.apply_chat_template(
-            messages, tokenize=False, add_generation_prompt=True
-        )
-        inputs = self.process_inputs(text, image)
+        pil_images = [
+            Image.open(img).convert("RGB") if isinstance(img, str) else img
+            for img in images
+        ]
+
+        messages_list = [
+            self.build_messages(img, prompt)
+            for img, prompt in zip(pil_images, prompts)
+        ]
+
+        texts = [
+            self.processor.apply_chat_template(
+                msgs, tokenize=False, add_generation_prompt=True
+            )
+            for msgs in messages_list
+        ]
+
+        inputs = self.process_inputs(texts, pil_images)
 
         default_gen_kwargs = {"max_new_tokens": 128}
         default_gen_kwargs.update(gen_kwargs)
@@ -64,4 +90,8 @@ class HuggingFaceBaseVLM(BaseVLM):
             generated_ids_trimmed,
             skip_special_tokens=True,
             clean_up_tokenization_spaces=self.clean_up_tokenization_spaces
-        )[0]
+        )
+
+    def generate(self, image: Union[Image.Image, str], prompt: str, **gen_kwargs) -> str:
+        return self.batch_generate([image], [prompt], **gen_kwargs)[0]
+

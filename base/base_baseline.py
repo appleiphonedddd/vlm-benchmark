@@ -1,5 +1,5 @@
 from abc import ABC
-from typing import Any, Optional, Union
+from typing import Any, List, Optional, Union
 from PIL import Image
 from base.base_model import BaseVLM
 
@@ -22,6 +22,14 @@ class BaseBaseline(ABC):
         if self.model is None:
             raise ValueError("No model attached to this baseline.")
         return self.model.generate(image, prompt, **{**self.kwargs, **gen_kwargs})
+
+    def batch_generate(self, images: List[Union[Image.Image, str]], prompts: List[str], **gen_kwargs) -> List[str]:
+        """Batch inference interface matching BaseVLM.batch_generate.
+        Delegates batch generation to the wrapped model by default.
+        """
+        if self.model is None:
+            raise ValueError("No model attached to this baseline.")
+        return self.model.batch_generate(images, prompts, **{**self.kwargs, **gen_kwargs})
 
     def __getattr__(self, name: str) -> Any:
         """Transparently delegate attribute and method access to the underlying model."""

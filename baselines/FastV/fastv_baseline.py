@@ -1,5 +1,6 @@
+from typing import List, Optional, Union
+from PIL import Image
 from base.base_baseline import BaseBaseline
-from typing import Optional
 from .config import FastVConfig
 from .patcher import FastVPatcher
 
@@ -9,3 +10,8 @@ class FastVBaseline(BaseBaseline):
         self.config = config or FastVConfig()
         self.patcher = FastVPatcher(self.config)
         self.patcher.patch_model(self.model.model)
+
+    def batch_generate(self, images: List[Union[Image.Image, str]], prompts: List[str], **gen_kwargs) -> List[str]:
+        # FastVPatcher operates on single-sample prefill tensors due to dynamic token pruning masks.
+        # Fall back to iterative generation to preserve token ranking integrity.
+        return [self.generate(img, p, **gen_kwargs) for img, p in zip(images, prompts)]

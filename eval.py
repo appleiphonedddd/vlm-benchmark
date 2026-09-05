@@ -60,6 +60,9 @@ def parse_args():
     parser.add_argument("--output_dir", type=str, default="./results",
                         help="Directory to save evaluation results")
 
+    parser.add_argument("--batch_size", type=int, default=1,
+                        help="Batch size for model inference (default: 1)")
+
     parser.add_argument("--device", type=str, default="cuda")
 
     return parser.parse_args()
@@ -103,7 +106,9 @@ def main():
     dataset = load_benchmark(args)
 
     print("Starting evaluation...")
-    evaluation = dataset.run_evaluation(model, on_sample=make_progress_reporter())
+    evaluation = dataset.run_evaluation(
+        model, on_sample=make_progress_reporter(), batch_size=args.batch_size
+    )
 
     details = evaluation["details"]
     correct = sum(1 for r in details if r["metrics"].get("accuracy", 0) >= 1.0)

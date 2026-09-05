@@ -35,31 +35,47 @@ class BaseBenchmarkDataset(ABC):
         return self.metric.aggregate(results)
 
     def run_evaluation(self, model: BaseVLM,
-                       on_sample: Callable[[Dict[str, Any], Dict[str, float]], None] = None,
+                       on_sample: Optional[Callable[[Dict[str, Any], Dict[str, float]], None]] = None,
+                       batch_size: int = 1,
                        **gen_kwargs) -> Dict[str, Any]:
         """
         Execute the complete evaluation pipeline
 
-        if given is called after every sample with that sample's
-        result and the running aggregate, so callers can report progress
-        without this class knowing how results are displayed
+        Args:
+            model: Model to evaluate
+            on_sample: If given, called after every sample with that sample's
+                       result and the running aggregate
+            batch_size: Number of samples to process per batch (default: 1)
+            **gen_kwargs: Additional generation parameters
         """
+        if batch_size < 1:
+            raise ValueError(f"batch_size must be at least 1, got {batch_size}")
+
         results = []
+        batches = [self.data[i:i + batch_size] for i in range(0, len(self.data), batch_size)]
 
-        for item in tqdm(self.data, desc=f"Evaluating on {self.__class__.__name__}"):
-            pred = model.generate(item["image"], item["prompt"], **gen_kwargs)
-            metric_score = self.evaluate_sample(pred, item["ground_truth"])
+        for batch_items in tqdm(batches, desc=f"Evaluating on {self.__class__.__name__}"):
+            batch_images = [item["image"] for item in batch_items]
+            batch_prompts = [item["prompt"] for item in batch_items]
 
-            results.append({
-                "id": item.get("id"),
-                "prompt": item["prompt"],
-                "prediction": pred,
-                "ground_truth": item["ground_truth"],
-                "metrics": metric_score
-            })
+            if batch_size == 1:
+                preds = [model.generate(batch_images[0], batch_prompts[0], **gen_kwargs)]
+            else:
+                preds = model.batch_generate(batch_images, batch_prompts, **gen_kwargs)
 
-            if on_sample:
-                on_sample(results[-1], self.aggregate_metrics(results))
+            for item, pred in zip(batch_items, preds):
+                metric_score = self.evaluate_sample(pred, item["ground_truth"])
+
+                results.append({
+                    "id": item.get("id"),
+                    "prompt": item["prompt"],
+                    "prediction": pred,
+                    "ground_truth": item["ground_truth"],
+                    "metrics": metric_score
+                })
+
+                if on_sample:
+                    on_sample(results[-1], self.aggregate_metrics(results))
 
         summary = self.aggregate_metrics(results)
         return {"summary": summary, "details": results}
