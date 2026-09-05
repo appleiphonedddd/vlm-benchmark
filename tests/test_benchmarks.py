@@ -9,7 +9,7 @@ import tests  # Initialize mocks for external dependencies
 
 from base.base_dataset import BaseBenchmarkDataset
 from base.base_model import BaseVLM
-from utils.metrics import Accuracy, accuracy, OPTION_KEYS
+from utils.metrics import Accuracy, OPTION_KEYS
 
 
 class DummyDataset(BaseBenchmarkDataset):
@@ -24,10 +24,8 @@ class TestBaseBenchmarkDataset(unittest.TestCase):
     def test_default_evaluation_and_aggregation(self):
         dataset = DummyDataset(data_path="dummy")
         
-        # Test Accuracy class and backward compatibility alias
-        self.assertIs(accuracy, Accuracy)
+        # Test Accuracy metric instance
         self.assertIsInstance(dataset.metric, Accuracy)
-        self.assertIs(dataset.accuracy, dataset.metric)
 
         # Test evaluate_sample
         score1 = dataset.evaluate_sample("A", "A")

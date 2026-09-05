@@ -11,7 +11,6 @@ class BaseBenchmarkDataset(ABC):
         self.data_path = data_path
         self.split = split
         self.metric = metric or Accuracy()
-        self.accuracy = self.metric  # backward compatibility alias
         self.data = self.load_data()
 
     @abstractmethod

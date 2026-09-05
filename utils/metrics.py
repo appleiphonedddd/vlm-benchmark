@@ -63,6 +63,3 @@ class Accuracy:
                 pass
         return [text]
 
-
-# Backward-compatibility alias
-accuracy = Accuracy
