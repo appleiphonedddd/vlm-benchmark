@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from typing import List, Dict, Any, Union
 from PIL import Image
 
 class BaseVLM(ABC):
@@ -19,7 +18,7 @@ class BaseVLM(ABC):
         pass
 
     @abstractmethod
-    def generate(self, image: Union[Image.Image, str], prompt: str, **gen_kwargs) -> str:
+    def generate(self, image: Image.Image | str, prompt: str, **gen_kwargs) -> str:
         """Inference interface for a single image and text prompt
 
         Args:
@@ -31,10 +30,3 @@ class BaseVLM(ABC):
             str: Model response text
         """
         pass
-
-    def batch_generate(self, images: List[Union[Image.Image, str]], prompts: List[str], **gen_kwargs) -> List[str]:
-        """
-        Batch inference interface 
-        implemented iteratively by default can be overridden for parallel acceleration
-        """
-        return [self.generate(img, p, **gen_kwargs) for img, p in zip(images, prompts)]

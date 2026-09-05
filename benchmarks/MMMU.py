@@ -2,9 +2,8 @@ import ast
 from typing import Dict, Any, List
 from datasets import load_dataset
 from base.base_dataset import BaseBenchmarkDataset
-from utils.metrics import accuracy
+from utils.metrics import OPTION_KEYS
 
-OPTION_KEYS = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"]
 IMAGE_KEYS = [f"image_{i}" for i in range(1, 8)]
 
 
@@ -13,7 +12,6 @@ class MMMUDataset(BaseBenchmarkDataset):
 
     def __init__(self, data_path: str = "MMMU/MMMU", split: str = "validation", config_name: str = "Accounting"):
         self.config_name = config_name
-        self.accuracy = accuracy(OPTION_KEYS)
         super().__init__(data_path, split)
 
     def load_data(self) -> List[Dict[str, Any]]:
@@ -47,9 +45,3 @@ class MMMUDataset(BaseBenchmarkDataset):
             })
 
         return samples
-
-    def evaluate_sample(self, prediction: str, ground_truth: Any) -> Dict[str, float]:
-        return self.accuracy.score(prediction, ground_truth)
-
-    def aggregate_metrics(self, results: List[Dict[str, Any]]) -> Dict[str, float]:
-        return self.accuracy.aggregate(results)

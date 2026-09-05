@@ -1,4 +1,4 @@
 from .cli import CaseInsensitiveChoice
-from .metrics import accuracy
+from .metrics import Accuracy, accuracy, OPTION_KEYS
 
-__all__ = ["CaseInsensitiveChoice", "accuracy"]
+__all__ = ["CaseInsensitiveChoice", "Accuracy", "accuracy", "OPTION_KEYS"]

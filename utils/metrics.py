@@ -5,7 +5,7 @@ from typing import Any, Dict, List
 OPTION_KEYS = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"]
 
 
-class accuracy():
+class Accuracy:
     """Accuracy metric shared across benchmarks.
 
     Supports both multiple-choice (letter) grading and free-text exact-match
@@ -62,3 +62,7 @@ class accuracy():
             except (ValueError, SyntaxError):
                 pass
         return [text]
+
+
+# Backward-compatibility alias
+accuracy = Accuracy

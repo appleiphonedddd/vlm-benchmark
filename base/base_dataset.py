@@ -1,14 +1,17 @@
 from abc import ABC, abstractmethod
-from typing import Callable, Dict, Any, List
+from typing import Callable, Dict, Any, List, Optional
 from tqdm import tqdm
 from base.base_model import BaseVLM
+from utils.metrics import Accuracy
 
 class BaseBenchmarkDataset(ABC):
     """Abstract base class for all benchmark evaluation datasets"""
 
-    def __init__(self, data_path: str, split: str = "test"):
+    def __init__(self, data_path: str, split: str = "test", metric: Optional[Any] = None):
         self.data_path = data_path
         self.split = split
+        self.metric = metric or Accuracy()
+        self.accuracy = self.metric  # backward compatibility alias
         self.data = self.load_data()
 
     @abstractmethod
@@ -24,12 +27,13 @@ class BaseBenchmarkDataset(ABC):
         """
         pass
 
-    @abstractmethod
     def evaluate_sample(self, prediction: str, ground_truth: Any) -> Dict[str, float]:
-        """
-        Compute metrics for a single sample
-        """
-        pass
+        """Compute metrics for a single sample (defaults to self.metric.score)"""
+        return self.metric.score(prediction, ground_truth)
+
+    def aggregate_metrics(self, results: List[Dict[str, Any]]) -> Dict[str, float]:
+        """Aggregate metrics across all samples (defaults to self.metric.aggregate)"""
+        return self.metric.aggregate(results)
 
     def run_evaluation(self, model: BaseVLM,
                        on_sample: Callable[[Dict[str, Any], Dict[str, float]], None] = None,
@@ -60,8 +64,3 @@ class BaseBenchmarkDataset(ABC):
 
         summary = self.aggregate_metrics(results)
         return {"summary": summary, "details": results}
-
-    @abstractmethod
-    def aggregate_metrics(self, results: List[Dict[str, Any]]) -> Dict[str, float]:
-        """Aggregate metrics across all samples"""
-        pass

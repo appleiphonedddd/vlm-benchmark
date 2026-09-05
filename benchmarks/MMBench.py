@@ -1,7 +1,6 @@
 from typing import Dict, Any, List
 from datasets import load_dataset
 from base.base_dataset import BaseBenchmarkDataset
-from utils.metrics import accuracy
 
 OPTION_KEYS = ["A", "B", "C", "D"]
 
@@ -11,7 +10,6 @@ class MMBenchDataset(BaseBenchmarkDataset):
 
     def __init__(self, data_path: str = "lmms-lab/MMBench", split: str = "dev", config_name: str = "en"):
         self.config_name = config_name
-        self.accuracy = accuracy(OPTION_KEYS)
         super().__init__(data_path, split)
 
     def load_data(self) -> List[Dict[str, Any]]:
@@ -43,9 +41,3 @@ class MMBenchDataset(BaseBenchmarkDataset):
             })
 
         return samples
-
-    def evaluate_sample(self, prediction: str, ground_truth: Any) -> Dict[str, float]:
-        return self.accuracy.score(prediction, ground_truth)
-
-    def aggregate_metrics(self, results: List[Dict[str, Any]]) -> Dict[str, float]:
-        return self.accuracy.aggregate(results)
